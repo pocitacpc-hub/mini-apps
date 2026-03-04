@@ -375,23 +375,22 @@ function buildConfigForm(id) {
     ])
   ]);
 
-  // drivetrain specific fields
-  if (cfg.drivetrain === "1x") {
-    form.appendChild(el("div", { class: "field half" }, [
-      el("label", {}, ["Převodník (1x)"]),
-      el("select", { "data-field": "ring1x" }, ring1xOpts)
-    ]));
-  } else {
-    form.appendChild(el("div", { class: "field half" }, [
-      el("label", {}, ["Převodníky (2x)"]),
-      el("div", { class: "inline" }, [
-        el("input", { type: "number", min: "20", max: "70", step: "1", value: cfg.ring2xSmall, "data-field": "ring2xSmall" }),
-        el("span", { class: "mini" }, ["malý"]),
-        el("input", { type: "number", min: "20", max: "70", step: "1", value: cfg.ring2xBig, "data-field": "ring2xBig" }),
-        el("span", { class: "mini" }, ["velký"])
-      ])
-    ]));
-  }
+const ringsBox = el("div", { class:"field half rings-box" }, [
+  el("label", {}, ["Převodníky"]),
+
+  // 1x
+  el("div", { class:`rings-row ${cfg.drivetrain==="1x" ? "" : "is-hidden"}` }, [
+    el("select", { "data-field":"ring1x" }, ring1xOpts)
+  ]),
+
+  // 2x
+  el("div", { class:`rings-row ${cfg.drivetrain==="2x" ? "" : "is-hidden"}` }, [
+    el("input", { type:"number", min:"20", max:"70", step:"1", value: cfg.ring2xSmall, "data-field":"ring2xSmall" }),
+    el("input", { type:"number", min:"20", max:"70", step:"1", value: cfg.ring2xBig,   "data-field":"ring2xBig" })
+  ])
+]);
+
+form.appendChild(ringsBox);
 
   form.appendChild(el("div", { class: "field third" }, [
     el("label", {}, ["Kadence (rpm) – per konfigurace"]),
