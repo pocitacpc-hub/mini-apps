@@ -1,0 +1,20 @@
+[
+  {
+    "id": "prevody",
+    "name": "Kalkulačka převodů",
+    "description": "1x/2x · km/h · gear inches · křížení · A–D · export XLSX",
+    "path": "apps/prevody/",
+    "icon": "⚙️",
+    "status": "active",
+    "tags": ["cyklo", "kalkulačka", "xlsx"]
+  },
+  {
+    "id": "placeholder",
+    "name": "Další aplikace",
+    "description": "Zatím připravuju…",
+    "path": "",
+    "icon": "🧩",
+    "status": "disabled",
+    "tags": []
+  }
+]
