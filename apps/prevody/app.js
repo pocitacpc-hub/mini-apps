@@ -484,7 +484,7 @@ function buildTable(id, calc) {
       const cell = r.cells[i];
 
       const status = cell.status; // ok|warn|bad
-      const statusLabel = status === "ok" ? "OK" : status === "warn" ? "Hraniční" : "Nevhodné";
+      const statusLabel = status === "ok" ? "OK" : status === "warn" ? "H" : "N";
       const dotClass = status === "ok" ? "gear-dot" : status === "warn" ? "gear-dot warn" : "gear-dot bad";
 
       const tip = status === "ok"
