@@ -1,0 +1,31 @@
+{
+  "wheels": [
+    { "id": "700x23", "label": "700x23C", "circumference_mm": 2096, "diameter_in": 26.4 },
+    { "id": "700x25", "label": "700x25C", "circumference_mm": 2105, "diameter_in": 26.6 },
+    { "id": "700x28", "label": "700x28C", "circumference_mm": 2136, "diameter_in": 27.0 },
+    { "id": "700x32", "label": "700x32C", "circumference_mm": 2155, "diameter_in": 27.2 },
+    { "id": "700x35", "label": "700x35C", "circumference_mm": 2185, "diameter_in": 27.6 },
+    { "id": "700x38", "label": "700x38C", "circumference_mm": 2200, "diameter_in": 27.8 },
+    { "id": "700x40", "label": "700x40C", "circumference_mm": 2220, "diameter_in": 28.0 },
+    { "id": "650b47", "label": "650B x 47", "circumference_mm": 2100, "diameter_in": 26.4 },
+    { "id": "26", "label": "26\" MTB", "circumference_mm": 2070, "diameter_in": 26.0 },
+    { "id": "275", "label": "27.5\" (650B) MTB", "circumference_mm": 2205, "diameter_in": 27.5 },
+    { "id": "29", "label": "29\" MTB", "circumference_mm": 2326, "diameter_in": 29.0 }
+  ],
+  "chainrings_1x": [28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52],
+  "chainring_pairs_2x": [
+    { "id": "46-30", "label": "46/30", "small": 30, "big": 46 },
+    { "id": "48-31", "label": "48/31", "small": 31, "big": 48 },
+    { "id": "50-34", "label": "50/34", "small": 34, "big": 50 },
+    { "id": "52-36", "label": "52/36", "small": 36, "big": 52 },
+    { "id": "53-39", "label": "53/39", "small": 39, "big": 53 }
+  ],
+  "cassettes": [
+    { "id": "10-33-12s", "label": "10–33 (12s)", "cogs": [10,11,12,13,14,15,17,19,21,24,28,33] },
+    { "id": "10-36-12s", "label": "10–36 (12s)", "cogs": [10,11,12,13,15,17,19,21,24,28,32,36] },
+    { "id": "10-44-12s", "label": "10–44 (12s)", "cogs": [10,12,14,16,18,21,24,28,32,38,44] },
+    { "id": "10-46-12s", "label": "10–46 (12s)", "cogs": [10,12,14,16,18,21,24,28,32,36,40,46] },
+    { "id": "11-28-11s", "label": "11–28 (11s)", "cogs": [11,12,13,14,15,17,19,21,23,25,28] },
+    { "id": "11-32-11s", "label": "11–32 (11s)", "cogs": [11,12,13,14,16,18,20,22,25,28,32] }
+  ]
+}
