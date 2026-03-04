@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Převody – kalkulačka + porovnání</title>
+
+  <link rel="stylesheet" href="../../shared/styles.css" />
+
+  <!-- SheetJS (XLSX export) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 64 64" fill="none">
+          <path d="M18 44a10 10 0 1 0 0 .1" stroke="currentColor" stroke-width="3" />
+          <path d="M48 44a10 10 0 1 0 0 .1" stroke="currentColor" stroke-width="3" />
+          <path d="M18 44l10-20h10l10 20" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <path d="M28 24l-7-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <path d="M33 24l6-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div>
+        <div class="title">Cyklo převody</div>
+        <div class="subtitle">Vývoj · km/h · gear inches · křížení · A–D</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <a class="btn" href="../../index.html">← Rozcestník</a>
+
+      <div class="cadence">
+        <label for="cadenceGlobal">Kadence (rpm)</label>
+        <div class="cadence-row">
+          <input id="cadenceGlobal" type="number" min="1" max="250" step="1" value="80" />
+          <div class="quick">
+            <button class="chip" data-cad="60">60</button>
+            <button class="chip" data-cad="70">70</button>
+            <button class="chip" data-cad="80">80</button>
+            <button class="chip" data-cad="90">90</button>
+            <button class="chip" data-cad="100">100</button>
+            <button class="chip" data-cad="110">110</button>
+          </div>
+        </div>
+        <label class="toggle">
+          <input id="cadencePerConfig" type="checkbox" />
+          <span>Kadence pro každou konfiguraci zvlášť</span>
+        </label>
+      </div>
+
+      <div class="toggles">
+        <div class="seg">
+          <span class="seg-label">Graf</span>
+          <button class="seg-btn is-active" data-graph="speed">km/h</button>
+          <button class="seg-btn" data-graph="gearInches">gear inches</button>
+        </div>
+
+        <div class="seg">
+          <span class="seg-label">Zobrazení</span>
+          <label class="toggle"><input id="showSpeed" type="checkbox" checked /><span>km/h</span></label>
+          <label class="toggle"><input id="showRatio" type="checkbox" /><span>ratio</span></label>
+          <label class="toggle"><input id="showDev" type="checkbox" /><span>vývoj (m)</span></label>
+          <label class="toggle"><input id="showGI" type="checkbox" /><span>gear inches</span></label>
+        </div>
+
+        <div class="seg">
+          <span class="seg-label">Filtr</span>
+          <label class="toggle"><input id="filterOnlyOk" type="checkbox" /><span>Jen OK převody (porovnání)</span></label>
+        </div>
+
+        <button id="exportXlsx" class="btn primary">Export XLSX</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="hero-content">
+          <h1>Kalkulačka převodů</h1>
+          <p>Vyber kolo, převodníky a kazetu. Neefektivní převody jsou označené kvůli křížení řetězu.</p>
+          <div class="legend">
+            <span class="pill ok">OK</span>
+            <span class="pill warn">Hraniční</span>
+            <span class="pill bad">Nevhodné (křížení)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="configs">
+      <div class="configs-head">
+        <h2>Konfigurace</h2>
+        <div class="hint">A–D můžeš zapnout/vypnout, duplikovat a porovnávat.</div>
+      </div>
+      <div id="configGrid" class="grid"></div>
+    </section>
+
+    <section class="compare">
+      <div class="compare-head">
+        <h2>Porovnání</h2>
+        <div class="hint">Graf porovnává aktivní konfigurace. Neefektivní převody jsou zvýrazněné.</div>
+      </div>
+
+      <div class="compare-card">
+        <canvas id="compareChart" width="1200" height="420"></canvas>
+        <div id="chartLegend" class="chart-legend"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>Tip: pro přesný výpočet použij vlastní obvod kola (mm) naměřený na pneu pod zatížením.</div>
+  </footer>
+</body>
+</html>
