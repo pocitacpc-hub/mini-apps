@@ -13,6 +13,23 @@
   --d: #d46eff;
 }
 
+/* Lepší čitelnost selectů (pole) */
+.field select{
+  color: var(--text);
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+}
+
+/* Pokus o stylování dropdown listu (funguje v některých kombinacích) */
+.field select option{
+  background: #0b0f14;
+  color: rgba(255,255,255,0.92);
+}
+.field select optgroup{
+  background: #0b0f14;
+  color: rgba(255,255,255,0.92);
+}
+
 /* top-right controls */
 .top-actions{
   display:flex;
