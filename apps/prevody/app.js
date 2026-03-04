@@ -49,6 +49,16 @@ const state = {
 function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
 function byId(arr, id){ return arr.find(x => x.id === id); }
 
+function wireAutoRerender() {
+  const grid = document.getElementById("configGrid");
+  if (!grid) return;
+
+  // Každá změna v input/select/textarea přepočítá UI.
+  const handler = () => render();
+  grid.addEventListener("input", handler, { passive: true });
+  grid.addEventListener("change", handler, { passive: true });
+}
+
 function initState() {
   for (const id of CFG_IDS) {
     const base = deepClone(DEFAULTS);
@@ -767,5 +777,6 @@ function render() {
   }
 
   wireTopControls();
+  wireAutoRerender();
   render();
 })();
