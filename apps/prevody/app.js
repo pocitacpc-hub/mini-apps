@@ -39,6 +39,7 @@ let DATA = null;
 
 const state = {
   graphMode: "speed",
+  dirty: false,
   show: { speed: true, ratio: false, dev: false, gi: false },
   filterOnlyOk: false,
   cadencePerConfig: false,
@@ -48,6 +49,66 @@ const state = {
 
 function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
 function byId(arr, id){ return arr.find(x => x.id === id); }
+
+function markDirty(isDirty = true) {
+  state.dirty = isDirty;
+  const btn = document.getElementById("recalc");
+  if (!btn) return;
+  btn.classList.toggle("primary", isDirty);   // zvýrazní tlačítko když jsou změny
+  btn.textContent = isDirty ? "Přepočítat *" : "Přepočítat";
+}
+
+function parseFieldValue(el) {
+  if (el.type === "checkbox") return el.checked;
+  if (el.type === "number") return el.value === "" ? "" : Number(el.value);
+  return el.value;
+}
+
+/**
+ * Delegovaný zápis změn do state.configs
+ * očekává:
+ * - element má data-cfg="A" (nebo je uvnitř prvku s data-cfg)
+ * - element má data-field="wheelId" apod.
+ */
+function wireConfigStateBinding() {
+  const grid = document.getElementById("configGrid");
+  if (!grid) return;
+
+  function handle(e) {
+    const el = e.target;
+    const field = el.dataset.field;
+    if (!field) return;
+
+    const card = el.closest("[data-cfg]");
+    if (!card) return;
+
+    const id = card.dataset.cfg;
+    const cfg = state.configs[id];
+    if (!cfg) return;
+
+    cfg[field] = parseFieldValue(el);
+
+    // malá logika navíc: když přepnu wheel, nastavím customCircMm podle tabulky
+    if (field === "wheelId") {
+      const w = byId(DATA.wheels, cfg.wheelId);
+      if (w && !cfg.useCustomCirc) cfg.customCircMm = w.circumference_mm;
+    }
+
+    markDirty(true);
+  }
+
+  grid.addEventListener("input", handle);
+  grid.addEventListener("change", handle);
+}
+
+function wireRecalcButton() {
+  const btn = document.getElementById("recalc");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    markDirty(false);
+    render();
+  });
+}
 
 function wireAutoRerender() {
   const grid = document.getElementById("configGrid");
@@ -777,6 +838,9 @@ function render() {
   }
 
   wireTopControls();
+  wireRecalcButton();
+  wireConfigStateBinding();
+  markDirty(false);
   wireAutoRerender();
   render();
 })();
