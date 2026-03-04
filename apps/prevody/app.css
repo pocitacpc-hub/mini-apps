@@ -249,6 +249,7 @@ td .sub{color: var(--muted); margin-top: 3px; display:flex; gap:10px; flex-wrap:
 .cell{
   border-radius: 14px;
   padding: 10px;
+  padding-top: 26px; /* NEW: místo pro tag */
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03);
   position:relative;
@@ -259,12 +260,13 @@ td .sub{color: var(--muted); margin-top: 3px; display:flex; gap:10px; flex-wrap:
 .cell .tag{
   position:absolute;
   right: 10px;
-  top: 10px;
-  font-size: 11px;
+  top: 8px;          /* trochu výš */
+  font-size: 10px;   /* menší */
   color: var(--muted2);
   display:flex;
   gap:6px;
   align-items:center;
+  white-space: nowrap; /* aby se nezalamovalo */
 }
 
 .dot{width:8px; height:8px; border-radius:999px; background: var(--ok)}
