@@ -13,15 +13,15 @@ const DEFAULTS = {
   enabled: true,
 
   drivetrain: "1x",        // "1x" | "2x"
-  wheelId: "700x28",
+  wheelId: "700x32",
   useCustomCirc: false,
-  customCircMm: 2136,
+  customCircMm: 2155,
 
-  ring1x: 40,
+  ring1x: 44,
   ring2xSmall: 34,
   ring2xBig: 50,
 
-  cassetteId: "10-46-12s",
+  cassetteId: "10-46-13s",
 
   cadence: 80,             // used if cadencePerConfig
   crossMode: "standard",   // aggressive|standard|conservative|advanced
