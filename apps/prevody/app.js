@@ -450,65 +450,77 @@ function buildSummary(id, calc) {
 
 function buildTable(id, calc) {
   const cfg = state.configs[id];
-  const cogs = calc.cogs;
-  const rows = calc.rows;
+  const wrap = document.getElementById(`tableWrap-${id}`);
+  wrap.innerHTML = "";
 
-  // Display columns: largest -> smallest (easy -> hard more intuitive)
-  const colIndices = cogs.map((_, i) => i).reverse();
+  if (!calc.cogs.length || !calc.rows.length) {
+    wrap.appendChild(el("div", { class: "gear-block" }, [
+      el("div", { class: "mini" }, ["Chybí data pro tabulku (kazeta/převodník)."])
+    ]));
+    return;
+  }
 
-  const thead = el("thead", {}, [
-    el("tr", {}, [
-      el("th", {}, [cfg.drivetrain === "2x" ? "Převodník" : "1x převodník"]),
-      ...colIndices.map(i => el("th", {}, [`${cogs[i]}T`]))
-    ])
-  ]);
+  // Zobrazíme dlaždice od lehkých převodů (největší pastorky) k těžkým (nejmenší)
+  const colIndices = calc.cogs.map((_, i) => i).reverse();
 
-  const tbody = el("tbody", {}, rows.map(r => {
+  // Pro každý převodník (1x: 1 blok, 2x: 2 bloky)
+  for (const r of calc.rows) {
     const ringLabel = cfg.drivetrain === "2x"
       ? (r.ringIdx === 0 ? `${r.ringTeeth}T (malý)` : `${r.ringTeeth}T (velký)`)
       : `${r.ringTeeth}T`;
 
-    return el("tr", {}, [
-      el("td", {}, [el("div", { class: "main" }, [ringLabel])]),
-      ...colIndices.map(i => {
-        const cell = r.cells[i];
-
-        const parts = [];
-        if (state.show.speed) parts.push({ lab: "km/h", val: fmt(cell.speed_kmh, 1) });
-        if (state.show.ratio) parts.push({ lab: "ratio", val: fmt(cell.ratio, 3) });
-        if (state.show.dev) parts.push({ lab: "m", val: fmt(cell.development_m, 2) });
-        if (state.show.gi) parts.push({ lab: "GI", val: fmt(cell.gear_inches, 1) });
-
-        const mainVal = state.show.speed ? `${fmt(cell.speed_kmh, 1)} km/h` : (parts[0]?.val ?? "–");
-        const subParts = parts.filter(p => !(state.show.speed && p.lab === "km/h")).map(p => `${p.lab}: ${p.val}`);
-
-        const status = cell.status;
-        const statusLabel = status === "ok" ? "OK" : status === "warn" ? "Hraniční" : "Nevhodné";
-        const dotClass = status === "ok" ? "dot" : status === "warn" ? "dot warn" : "dot bad";
-        const tip = status === "ok"
-          ? "Efektivní převod"
-          : status === "warn"
-            ? "Hraniční – zvýšené křížení řetězu"
-            : "Nevhodné – výrazné křížení řetězu";
-
-        return el("td", {}, [
-          el("div", { class: `cell ${status}`, title: tip }, [
-            el("div", { class: "tag" }, [
-              el("span", { class: dotClass }),
-              el("span", {}, [statusLabel])
-            ]),
-            el("div", { class: "main" }, [mainVal]),
-            el("div", { class: "sub" }, subParts.map(x => el("span", {}, [x])))
-          ])
-        ]);
-      })
+    const block = el("div", { class: "gear-block" }, [
+      el("div", { class: "gear-block-head" }, [
+        el("div", { class: "gear-block-title" }, [ringLabel]),
+        el("div", { class: "gear-block-sub" }, [
+          `kazeta: ${byId(DATA.cassettes, cfg.cassetteId)?.label ?? cfg.cassetteId}`
+        ])
+      ])
     ]);
-  }));
 
-  const table = el("table", {}, [thead, tbody]);
-  const wrap = document.getElementById(`tableWrap-${id}`);
-  wrap.innerHTML = "";
-  wrap.appendChild(table);
+    const grid = el("div", { class: "gear-grid" }, []);
+
+    for (const i of colIndices) {
+      const cell = r.cells[i];
+
+      const status = cell.status; // ok|warn|bad
+      const statusLabel = status === "ok" ? "OK" : status === "warn" ? "Hraniční" : "Nevhodné";
+      const dotClass = status === "ok" ? "gear-dot" : status === "warn" ? "gear-dot warn" : "gear-dot bad";
+
+      const tip = status === "ok"
+        ? "Efektivní převod"
+        : status === "warn"
+          ? "Hraniční – zvýšené křížení řetězu"
+          : "Nevhodné – výrazné křížení řetězu";
+
+      // Meta řádek podle togglů
+      const metaParts = [];
+      if (state.show.ratio) metaParts.push(`ratio: ${fmt(cell.ratio, 3)}`);
+      if (state.show.dev) metaParts.push(`m: ${fmt(cell.development_m, 2)}`);
+      if (state.show.gi) metaParts.push(`GI: ${fmt(cell.gear_inches, 1)}`);
+
+      const tile = el("div", { class: `gear-tile ${status}`, title: tip }, [
+        el("div", { class: "gear-top" }, [
+          el("div", { class: "gear-cog" }, [`${cell.cogTeeth}T`]),
+          el("div", { class: "gear-status" }, [
+            el("span", { class: dotClass }),
+            el("span", {}, [statusLabel])
+          ])
+        ]),
+        el("div", { class: "gear-speed" }, [
+          state.show.speed ? `${fmt(cell.speed_kmh, 1)} km/h` : "—"
+        ]),
+        metaParts.length
+          ? el("div", { class: "gear-meta" }, metaParts.map(t => el("span", {}, [t])))
+          : null
+      ]);
+
+      grid.appendChild(tile);
+    }
+
+    block.appendChild(grid);
+    wrap.appendChild(block);
+  }
 }
 
 function renderConfigs() {
