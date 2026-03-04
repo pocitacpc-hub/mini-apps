@@ -823,12 +823,27 @@ function wireConfigDelegation() {
 /* ---------------- recalc button ---------------- */
 
 function wireRecalcButton() {
+  // 1) přímé navázání na tlačítko
   const btn = document.getElementById("recalc");
-  if (!btn) return;
-  btn.addEventListener("click", () => {
+  if (btn) {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      markDirty(false);
+      // render v dalším ticku (když by se něco “pralo” s layoutem)
+      requestAnimationFrame(() => render());
+    });
+  }
+
+  // 2) fallback: kdyby se tlačítko vyměnilo/duplicitně renderovalo
+  document.addEventListener("click", (e) => {
+    const t = e.target?.closest?.("#recalc");
+    if (!t) return;
+    e.preventDefault();
+    e.stopPropagation();
     markDirty(false);
-    render();
-  });
+    requestAnimationFrame(() => render());
+  }, true); // capture
 }
 
 /* ---------------- config actions ---------------- */
