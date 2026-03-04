@@ -1,4 +1,154 @@
-/* --- Hub controls --- */
+:root{
+  --bg: #0b0f14;
+  --panel: rgba(255,255,255,0.06);
+  --panel2: rgba(255,255,255,0.09);
+  --border: rgba(255,255,255,0.12);
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.62);
+  --muted2: rgba(255,255,255,0.44);
+
+  --shadow: 0 18px 45px rgba(0,0,0,0.55);
+  --radius: 18px;
+  --radius2: 24px;
+
+  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(110,231,255,0.14), transparent 60%),
+    radial-gradient(900px 600px at 85% 0%, rgba(212,110,255,0.12), transparent 60%),
+    radial-gradient(1200px 900px at 50% 120%, rgba(61,220,151,0.10), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family: var(--font);
+}
+
+a{color:inherit}
+button,input,select,textarea{font:inherit}
+img,svg{max-width:100%; height:auto}
+
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 14px 18px;
+  background: rgba(11, 15, 20, 0.68);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  justify-content:space-between;
+}
+
+.brand{display:flex; gap:12px; align-items:center; min-width: 260px}
+.logo{
+  width: 46px; height:46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(110,231,255,0.18), rgba(212,110,255,0.14));
+  border: 1px solid var(--border);
+  display:grid; place-items:center;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+}
+.title{font-weight:700; letter-spacing:0.2px}
+.subtitle{color:var(--muted); font-size:12px; margin-top:2px}
+
+.wrap{max-width: 1280px; margin: 0 auto; padding: 18px}
+
+.hero-card{
+  position: relative;
+  overflow:hidden;
+  border-radius: var(--radius2);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+  box-shadow: var(--shadow);
+}
+.hero-bg{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(700px 300px at 30% 20%, rgba(110,231,255,0.16), transparent 65%),
+    radial-gradient(600px 320px at 75% 30%, rgba(212,110,255,0.14), transparent 65%),
+    radial-gradient(700px 360px at 50% 90%, rgba(61,220,151,0.12), transparent 60%);
+  opacity: 0.95;
+}
+.hero-content{position:relative; padding: 18px}
+.hero h1{margin:0 0 6px 0; font-size: 22px}
+.hero p{margin:0; color: var(--muted); max-width: 900px; line-height: 1.4}
+
+.btn{
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.btn:hover{background: rgba(255,255,255,0.10)}
+.btn.primary{
+  background: linear-gradient(135deg, rgba(110,231,255,0.18), rgba(61,220,151,0.12));
+  border-color: rgba(110,231,255,0.28);
+}
+
+.footer{
+  padding: 16px 18px;
+  color: var(--muted2);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  text-align:center;
+}
+
+/* --- App tiles (rozcestník) --- */
+.app-grid{
+  margin-top: 14px;
+  display:grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+}
+.app-tile{
+  grid-column: span 12;
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius2);
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.18);
+  text-decoration:none;
+  color: var(--text);
+  box-shadow: 0 14px 35px rgba(0,0,0,0.38);
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+@media (min-width: 900px){
+  .app-tile{grid-column: span 6;}
+}
+.app-tile:hover{
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(110,231,255,0.22);
+}
+.app-icon{
+  width: 46px; height:46px;
+  border-radius: 16px;
+  display:grid; place-items:center;
+  font-size: 22px;
+  background: linear-gradient(135deg, rgba(110,231,255,0.18), rgba(212,110,255,0.14));
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.app-info{flex:1}
+.app-name{font-weight: 800; letter-spacing: .2px}
+.app-desc{margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.35}
+.app-go{font-size: 20px; color: rgba(255,255,255,0.70)}
+.app-tile.is-disabled{cursor: not-allowed; opacity: .6}
+.app-tile.is-disabled:hover{transform:none; background: rgba(0,0,0,0.18); border-color: var(--border)}
+
+/* --- Hub controls (search + error) --- */
 .hub-controls{
   margin-top: 14px;
   display:flex;
