@@ -319,3 +319,105 @@ td .sub{color: var(--muted); margin-top: 3px; display:flex; gap:10px; flex-wrap:
 .legend-item{display:flex; gap:8px; align-items:center}
 .legend-line{width: 16px; height: 3px; border-radius: 999px; background: rgba(255,255,255,0.60)}
 .legend-dot{width:10px; height:10px; border-radius:999px; background: rgba(255,255,255,0.70)}
+
+/* --- Varianta A: gear tiles (bez scrollu) --- */
+.table-wrap{
+  overflow: hidden; /* zruší horizontální posuvník */
+}
+
+/* Blok pro jeden převodník (40T / malý / velký) */
+.gear-block{
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.gear-block:first-child{ border-top: 0; }
+
+.gear-block-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom: 10px;
+}
+.gear-block-title{
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.gear-block-sub{
+  color: var(--muted2);
+  font-size: 12px;
+}
+
+/* Grid dlaždic */
+.gear-grid{
+  display:grid;
+  gap: 10px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+@media (max-width: 1200px){
+  .gear-grid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 900px){
+  .gear-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px){
+  .gear-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Jedna dlaždice */
+.gear-tile{
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  padding: 12px 12px 10px;
+  position: relative;
+  min-height: 78px;
+}
+
+.gear-tile.ok{ border-color: rgba(61,220,151,0.22); }
+.gear-tile.warn{ border-color: rgba(255,209,102,0.22); }
+.gear-tile.bad{ border-color: rgba(255,77,109,0.22); }
+
+.gear-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.gear-cog{
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+}
+.gear-status{
+  display:flex;
+  align-items:center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted2);
+  white-space: nowrap;
+}
+
+.gear-speed{
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+
+.gear-meta{
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.gear-dot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background: var(--ok);
+}
+.gear-dot.warn{ background: var(--warn); }
+.gear-dot.bad{ background: var(--bad); }
