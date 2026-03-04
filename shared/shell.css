@@ -1,0 +1,24 @@
+/* --- Hub controls --- */
+.hub-controls{
+  margin-top: 14px;
+  display:flex;
+  gap: 10px;
+  align-items:center;
+}
+.hub-search{
+  width: 100%;
+  max-width: 520px;
+  padding: 12px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.20);
+  color: var(--text);
+}
+.hub-error{
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,77,109,0.35);
+  background: rgba(255,77,109,0.08);
+  color: rgba(255,255,255,0.85);
+}
