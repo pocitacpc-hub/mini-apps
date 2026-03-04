@@ -110,9 +110,17 @@ function wheelDiameterIn(cfg) {
 
 function getCogs(cfg) {
   const cas = byId(DATA.cassettes, cfg.cassetteId);
-  return cas ? cas.cogs.slice() : [];
-}
+  if (cas && Array.isArray(cas.cogs) && cas.cogs.length) return cas.cogs.slice();
 
+  // fallback: vezmi první dostupnou kazetu a oprav cfg.cassetteId
+  const fallback = DATA.cassettes?.[0];
+  if (fallback) {
+    console.warn("CassetteId not found, falling back:", cfg.cassetteId, "->", fallback.id);
+    cfg.cassetteId = fallback.id;
+    return fallback.cogs.slice();
+  }
+  return [];
+}
 // cogIndex is index in cogs array (0 smallest -> last largest)
 function crossStatus(cfg, ringIndex, cogIndex, cogsCount, drivetrain) {
   const mode = cfg.crossMode;
@@ -172,6 +180,17 @@ function crossStatus(cfg, ringIndex, cogIndex, cogsCount, drivetrain) {
 
 function computeCombos(cfg) {
   const cogs = getCogs(cfg);
+  if (!cogs.length) {
+  return {
+    cadence: state.cadencePerConfig ? Number(cfg.cadence || 80) : Number(state.cadenceGlobal || 80),
+    circM: wheelCircMm(cfg) / 1000,
+    diamIn: wheelDiameterIn(cfg),
+    cogs: [],
+    rings: [],
+    rows: [],
+    summary: { minSpeed: NaN, maxSpeed: NaN, minRatio: NaN, maxRatio: NaN, rangePct: NaN }
+  };
+}
   const circM = wheelCircMm(cfg) / 1000;
   const diamIn = wheelDiameterIn(cfg);
   const cadence = state.cadencePerConfig ? Number(cfg.cadence || 80) : Number(state.cadenceGlobal || 80);
