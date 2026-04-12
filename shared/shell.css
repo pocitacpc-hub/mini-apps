@@ -1,5 +1,5 @@
 :root{
-  --bg: #0b0f14;
+  --bg: #000000;
   --panel: rgba(255,255,255,0.06);
   --panel2: rgba(255,255,255,0.09);
   --border: rgba(255,255,255,0.12);
@@ -18,11 +18,7 @@
 html,body{height:100%}
 body{
   margin:0;
-  background:
-    radial-gradient(1200px 700px at 15% -10%, rgba(110,231,255,0.14), transparent 60%),
-    radial-gradient(900px 600px at 85% 0%, rgba(212,110,255,0.12), transparent 60%),
-    radial-gradient(1200px 900px at 50% 120%, rgba(61,220,151,0.10), transparent 55%),
-    var(--bg);
+  background: var(--bg);
   color:var(--text);
   font-family: var(--font);
 }
@@ -36,7 +32,7 @@ img,svg{max-width:100%; height:auto}
   top: 0;
   z-index: 5;
   padding: 14px 18px;
-  background: rgba(11, 15, 20, 0.68);
+  background: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
   display:flex;
@@ -64,16 +60,15 @@ img,svg{max-width:100%; height:auto}
   overflow:hidden;
   border-radius: var(--radius2);
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
   box-shadow: var(--shadow);
 }
 .hero-bg{
   position:absolute; inset:0;
   background:
-    radial-gradient(700px 300px at 30% 20%, rgba(110,231,255,0.16), transparent 65%),
-    radial-gradient(600px 320px at 75% 30%, rgba(212,110,255,0.14), transparent 65%),
-    radial-gradient(700px 360px at 50% 90%, rgba(61,220,151,0.12), transparent 60%);
-  opacity: 0.95;
+    linear-gradient(180deg, rgba(255,255,255,0.04), transparent 50%),
+    radial-gradient(720px 320px at 50% -10%, rgba(255,255,255,0.05), transparent 70%);
+  opacity: 0.75;
 }
 .hero-content{position:relative; padding: 18px}
 .hero h1{margin:0 0 6px 0; font-size: 22px}
@@ -102,6 +97,26 @@ img,svg{max-width:100%; height:auto}
   color: var(--muted2);
   border-top: 1px solid rgba(255,255,255,0.08);
   text-align:center;
+}
+
+@media (max-width: 900px){
+  .topbar{
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .brand{
+    min-width: 0;
+  }
+
+  .wrap{
+    padding: 12px;
+  }
+
+  .hero-content{
+    padding: 16px;
+  }
 }
 
 /* --- App tiles (rozcestník) --- */
