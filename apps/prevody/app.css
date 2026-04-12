@@ -127,19 +127,16 @@ h2{margin: 0 0 10px 0; font-size: 18px}
 /* grid + cards */
 .grid{
   display:grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 .config-card{
-  grid-column: span 12;
+  grid-column: span 1;
   border-radius: var(--radius2);
   border: 1px solid var(--border);
   background: var(--panel);
   box-shadow: var(--shadow);
   overflow:hidden;
-}
-@media (min-width: 980px){
-  .config-card{grid-column: span 6}
 }
 
 .config-head{
@@ -181,7 +178,7 @@ h2{margin: 0 0 10px 0; font-size: 18px}
   gap: 10px;
 }
 .field{grid-column: span 12}
-@media (min-width: 980px){
+@media (min-width: 1180px){
   .field.half{grid-column: span 6}
   .field.third{grid-column: span 4}
 }
@@ -472,3 +469,144 @@ td .sub{color: var(--muted); margin-top: 3px; display:flex; gap:10px; flex-wrap:
 .rings-box{ min-height: 118px; } /* drží místo, aby karta neskákala */
 .rings-row{ display:flex; gap:10px; flex-wrap:wrap; }
 .is-hidden{ display:none !important; }
+
+@media (max-width: 980px){
+  .top-actions{
+    justify-content: stretch;
+  }
+
+  .cadence,
+  .toggles{
+    width: 100%;
+    min-width: 0;
+  }
+
+  .configs-head,
+  .compare-head{
+    gap: 8px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .config-head{
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .head-actions{
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .summary{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kpi{
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 720px){
+  .grid{
+    gap: 10px;
+  }
+
+  .config-body{
+    padding: 10px 12px 12px 12px;
+  }
+
+  .summary{
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .kpi{
+    padding: 8px;
+  }
+
+  .gear-grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .gear-block{
+    padding: 10px;
+  }
+
+  .gear-tile{
+    padding: 10px;
+    min-height: 74px;
+  }
+
+  .gear-speed{
+    font-size: 15px;
+  }
+
+  #compareChart{
+    height: 280px;
+  }
+}
+
+@media (max-width: 560px){
+  .grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .config-card{
+    min-width: 0;
+  }
+
+  .config-head{
+    padding: 12px 12px 8px 12px;
+  }
+
+  .badge{
+    font-size: 14px;
+  }
+
+  .head-actions{
+    gap: 6px;
+  }
+
+  .icon-btn,
+  .btn{
+    padding: 8px 10px;
+  }
+
+  .field label,
+  .toggle,
+  .mini,
+  .gear-status,
+  .gear-meta{
+    font-size: 11px;
+  }
+
+  .field input[type="text"],
+  .field input[type="number"],
+  .field select{
+    padding: 9px 10px;
+    border-radius: 12px;
+  }
+
+  .gear-block-head{
+    gap: 6px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gear-grid{
+    grid-template-columns: 1fr;
+  }
+
+  .gear-top{
+    gap: 6px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #compareChart{
+    height: 220px;
+  }
+}
