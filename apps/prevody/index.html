@@ -75,7 +75,7 @@
           <span class="seg-label">Filtr</span>
           <label class="toggle"><input id="filterOnlyOk" type="checkbox" /><span>Jen OK převody (porovnání)</span></label>
         </div>
-       <button id="recalc" type="button" class="btn">Přepočítat</button>
+       <button id="recalc" type="button" class="btn">Obnovit</button>
         <button id="exportXlsx" class="btn primary">Export XLSX</button>
       </div>
     </div>
@@ -85,14 +85,10 @@
     <section class="hero">
       <div class="hero-card">
         <div class="hero-bg" aria-hidden="true"></div>
-        <div class="hero-content">
+        <div class="hero-content compact-hero">
           <h1>Kalkulačka převodů</h1>
-          <p>Vyber kolo, převodníky a kazetu. Neefektivní převody jsou označené kvůli křížení řetězu.</p>
-          <div class="legend">
-            <span class="pill ok">OK</span>
-            <span class="pill warn">Hraniční</span>
-            <span class="pill bad">Nevhodné (křížení)</span>
-          </div>
+          <span class="mini-legend"><span class="pill ok">OK</span><span class="pill warn">Hraniční</span><span class="pill bad">Nevhodné</span></span>
+          <button class="info-tip" type="button" aria-label="Informace k výpočtu" data-tip="Vyber kolo, převodníky a kazetu. Neefektivní převody jsou označené kvůli křížení řetězu. Pro přesnější výpočet použij vlastní obvod kola.">i</button>
         </div>
       </div>
     </section>
@@ -113,7 +109,6 @@
 
       <div class="compare-card">
         <canvas id="compareChart" width="1200" height="420"></canvas>
-        <div id="chartLegend" class="chart-legend"></div>
       </div>
     </section>
   </main>

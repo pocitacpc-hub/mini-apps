@@ -7,6 +7,18 @@
 
 const CFG_IDS = ["A", "B", "C", "D"];
 const CFG_COLORS = { A: "#6ee7ff", B: "#b6ff6e", C: "#ffb86e", D: "#d46eff" };
+const STORAGE_KEY = "mini-apps.prevody.state.v1";
+const NUMERIC_FIELDS = new Set([
+  "ring1x",
+  "ring2xSmall",
+  "ring2xBig",
+  "customCircMm",
+  "cadence",
+  "adv_2x_bigRing_largestCogsBad",
+  "adv_2x_smallRing_smallestCogsBad",
+  "adv_1x_smallestCogsBad",
+  "adv_1x_largestCogsBad"
+]);
 
 const DEFAULTS = {
   name: "",
@@ -18,6 +30,7 @@ const DEFAULTS = {
   customCircMm: 2155,
 
   ring1x: 44,
+  ring2xPairId: "custom",
   ring2xSmall: 34,
   ring2xBig: 50,
 
@@ -40,6 +53,8 @@ const CROSS_PRESETS = {
 };
 
 let DATA = null;
+let renderQueued = false;
+let chartPoints = [];
 
 const state = {
   graphMode: "speed", // speed|gearInches
@@ -67,12 +82,66 @@ function fmt(n, d = 1) {
   return n.toFixed(d);
 }
 
+function toNumber(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function markDirty(isDirty = true) {
   state.dirty = isDirty;
   const btn = document.getElementById("recalc");
   if (!btn) return;
   btn.classList.toggle("primary", isDirty);
-  btn.textContent = isDirty ? "Přepočítat *" : "Přepočítat";
+  btn.textContent = isDirty ? "Obnovit *" : "Obnovit";
+}
+
+function scheduleRender() {
+  if (renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(() => {
+    renderQueued = false;
+    markDirty(false);
+    render();
+  });
+}
+
+function persistState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      graphMode: state.graphMode,
+      show: state.show,
+      filterOnlyOk: state.filterOnlyOk,
+      cadencePerConfig: state.cadencePerConfig,
+      cadenceGlobal: state.cadenceGlobal,
+      configs: state.configs
+    }));
+  } catch (e) {
+    console.warn("State was not saved:", e);
+  }
+}
+
+function restoreState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== "object") return;
+
+    state.graphMode = saved.graphMode || state.graphMode;
+    state.show = { ...state.show, ...(saved.show || {}) };
+    state.filterOnlyOk = Boolean(saved.filterOnlyOk);
+    state.cadencePerConfig = Boolean(saved.cadencePerConfig);
+    state.cadenceGlobal = Number(saved.cadenceGlobal || state.cadenceGlobal);
+
+    for (const id of CFG_IDS) {
+      if (saved.configs?.[id]) {
+        state.configs[id] = { ...deepClone(DEFAULTS), ...saved.configs[id] };
+        normalizeCfgAfterField(state.configs[id]);
+      }
+    }
+  } catch (e) {
+    console.warn("Saved state was ignored:", e);
+  }
 }
 
 /* ---------------- data ---------------- */
@@ -295,8 +364,16 @@ function buildConfigForm(id) {
     el("option", { value: c.id, ...(c.id === cfg.cassetteId ? { selected: "" } : {}) }, [c.label])
   );
   const ring1xOpts = DATA.chainrings_1x.map(r =>
-    el("option", { value: r, ...(r === cfg.ring1x ? { selected: "" } : {}) }, [`${r}T`])
+    el("option", { value: r, ...(r === Number(cfg.ring1x) ? { selected: "" } : {}) }, [`${r}T`])
   );
+  const pairOpts = [
+    el("option", { value: "custom", ...(cfg.ring2xPairId === "custom" ? { selected: "" } : {}) }, ["Vlastni"])
+  ].concat((DATA.chainring_pairs_2x || []).map(pair =>
+    el("option", {
+      value: pair.id,
+      ...(pair.id === cfg.ring2xPairId ? { selected: "" } : {})
+    }, [pair.label])
+  ));
   const crossModeOpts = [
     ["aggressive", "Agresivní (méně omezení)"],
     ["standard", "Standard"],
@@ -385,6 +462,7 @@ const ringsBox = el("div", { class:"field half rings-box" }, [
 
   // 2x
   el("div", { class:`rings-row ${cfg.drivetrain==="2x" ? "" : "is-hidden"}` }, [
+    el("select", { "data-field":"ring2xPairId" }, pairOpts),
     el("input", { type:"number", min:"20", max:"70", step:"1", value: cfg.ring2xSmall, "data-field":"ring2xSmall" }),
     el("input", { type:"number", min:"20", max:"70", step:"1", value: cfg.ring2xBig,   "data-field":"ring2xBig" })
   ])
@@ -551,6 +629,7 @@ function activeConfigs() {
 
 function buildChartLegend(ids) {
   const box = document.getElementById("chartLegend");
+  if (!box) return;
   box.innerHTML = ids.map(id => {
     const name = state.configs[id].name || id;
     return `<div class="legend-item">
@@ -561,9 +640,72 @@ function buildChartLegend(ids) {
   }).join("");
 }
 
+function ensureChartTooltip() {
+  const card = document.querySelector(".compare-card");
+  if (!card) return null;
+
+  let tip = document.getElementById("chartTooltip");
+  if (!tip) {
+    tip = el("div", { id: "chartTooltip", class: "chart-tooltip", role: "status" });
+    card.appendChild(tip);
+  }
+  return tip;
+}
+
+function setupChartTooltip() {
+  const canvas = document.getElementById("compareChart");
+  const tip = ensureChartTooltip();
+  if (!canvas || !tip || canvas.dataset.tooltipReady) return;
+
+  canvas.dataset.tooltipReady = "true";
+  canvas.addEventListener("mouseleave", () => {
+    tip.classList.remove("is-visible");
+  });
+  canvas.addEventListener("mousemove", (e) => {
+    if (!chartPoints.length) {
+      tip.classList.remove("is-visible");
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    let nearest = null;
+    let nearestDist = Infinity;
+
+    for (const p of chartPoints) {
+      const dist = Math.hypot(p.px - mx, p.py - my);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearest = p;
+      }
+    }
+
+    if (!nearest || nearestDist > 18) {
+      tip.classList.remove("is-visible");
+      return;
+    }
+
+    const statusLabel = nearest.status === "ok" ? "OK" : nearest.status === "warn" ? "Hranicni" : "Nevhodne";
+    tip.innerHTML = `
+      <strong>${escapeHtml(nearest.id)}: ${escapeHtml(nearest.name)}</strong>
+      <span>${nearest.ringTeeth}T / ${nearest.cogTeeth}T · ${statusLabel}</span>
+      <span>${fmt(nearest.speed_kmh, 1)} km/h · ${fmt(nearest.development_m, 2)} m · ratio ${fmt(nearest.ratio, 3)}</span>
+      <span>Gear inches ${fmt(nearest.gear_inches, 1)}</span>
+    `;
+
+    const x = Math.min(Math.max(nearest.px + 12, 8), rect.width - 250);
+    const y = Math.min(Math.max(nearest.py + 12, 8), rect.height - 96);
+    tip.style.left = `${x}px`;
+    tip.style.top = `${y}px`;
+    tip.classList.add("is-visible");
+  });
+}
+
 function drawCompareChart() {
   const canvas = document.getElementById("compareChart");
   const ctx = canvas.getContext("2d");
+  chartPoints = [];
 
   const cssW = canvas.clientWidth;
   const cssH = canvas.clientHeight;
@@ -590,7 +732,14 @@ function drawCompareChart() {
     let pts = calc.rows.flatMap(r => r.cells.map(c => ({
       x: c.ratio,
       y: state.graphMode === "speed" ? c.speed_kmh : c.gear_inches,
-      status: c.status
+      status: c.status,
+      ratio: c.ratio,
+      development_m: c.development_m,
+      speed_kmh: c.speed_kmh,
+      gear_inches: c.gear_inches,
+      ringTeeth: c.ringTeeth,
+      cogTeeth: c.cogTeeth,
+      name: cfg.name || id
     })));
     pts.sort((a, b) => a.x - b.x);
     if (state.filterOnlyOk) pts = pts.filter(p => p.status === "ok");
@@ -655,6 +804,7 @@ function drawCompareChart() {
     for (const p of s.pts) {
       const x = xToPx(p.x);
       const y = yToPx(p.y);
+      chartPoints.push({ ...p, id: s.id, px: x, py: y });
 
       ctx.fillStyle = color;
 
@@ -688,6 +838,21 @@ function render() {
   // sync global cadence input
   const cad = document.getElementById("cadenceGlobal");
   if (cad) cad.value = state.cadenceGlobal;
+  const cpc = document.getElementById("cadencePerConfig");
+  if (cpc) cpc.checked = state.cadencePerConfig;
+  const f = document.getElementById("filterOnlyOk");
+  if (f) f.checked = state.filterOnlyOk;
+  const showSpeed = document.getElementById("showSpeed");
+  if (showSpeed) showSpeed.checked = state.show.speed;
+  const showRatio = document.getElementById("showRatio");
+  if (showRatio) showRatio.checked = state.show.ratio;
+  const showDev = document.getElementById("showDev");
+  if (showDev) showDev.checked = state.show.dev;
+  const showGI = document.getElementById("showGI");
+  if (showGI) showGI.checked = state.show.gi;
+  document.querySelectorAll(".seg-btn[data-graph]").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.graph === state.graphMode);
+  });
 
   renderConfigs();
   drawCompareChart();
@@ -700,7 +865,8 @@ function wireTopControls() {
   document.querySelectorAll(".chip").forEach(btn => {
     btn.addEventListener("click", () => {
       state.cadenceGlobal = Number(btn.dataset.cad);
-      markDirty(true);
+      persistState();
+      scheduleRender();
     });
   });
 
@@ -709,7 +875,8 @@ function wireTopControls() {
   if (cad) {
     cad.addEventListener("input", (e) => {
       state.cadenceGlobal = Number(e.target.value || 80);
-      markDirty(true);
+      persistState();
+      scheduleRender();
     });
   }
 
@@ -718,7 +885,8 @@ function wireTopControls() {
   if (cpc) {
     cpc.addEventListener("change", (e) => {
       state.cadencePerConfig = e.target.checked;
-      markDirty(true);
+      persistState();
+      scheduleRender();
     });
   }
 
@@ -728,7 +896,8 @@ function wireTopControls() {
       document.querySelectorAll(".seg-btn[data-graph]").forEach(x => x.classList.remove("is-active"));
       b.classList.add("is-active");
       state.graphMode = b.dataset.graph;
-      markDirty(true);
+      persistState();
+      scheduleRender();
     });
   });
 
@@ -738,7 +907,8 @@ function wireTopControls() {
     if (!el) return;
     el.addEventListener("change", (e) => {
       state.show[key] = e.target.checked;
-      markDirty(true);
+      persistState();
+      scheduleRender();
     });
   };
   bindCheck("showSpeed", "speed");
@@ -751,7 +921,8 @@ function wireTopControls() {
   if (f) {
     f.addEventListener("change", (e) => {
       state.filterOnlyOk = e.target.checked;
-      markDirty(true);
+      persistState();
+      scheduleRender();
     });
   }
 
@@ -771,15 +942,24 @@ function wireTopControls() {
 function parseFieldValue(el) {
   if (el.type === "checkbox") return el.checked;
   if (el.type === "number") return el.value === "" ? "" : Number(el.value);
+  if (NUMERIC_FIELDS.has(el.dataset.field)) return toNumber(el.value, "");
   // radios: return el.value
   return el.value;
 }
 
 function normalizeCfgAfterField(cfg, field) {
+  cfg.ring1x = toNumber(cfg.ring1x, DEFAULTS.ring1x);
+  cfg.ring2xSmall = toNumber(cfg.ring2xSmall, DEFAULTS.ring2xSmall);
+  cfg.ring2xBig = toNumber(cfg.ring2xBig, DEFAULTS.ring2xBig);
+  cfg.customCircMm = toNumber(cfg.customCircMm, DEFAULTS.customCircMm);
+  cfg.cadence = toNumber(cfg.cadence, DEFAULTS.cadence);
+  cfg.adv_2x_bigRing_largestCogsBad = toNumber(cfg.adv_2x_bigRing_largestCogsBad, DEFAULTS.adv_2x_bigRing_largestCogsBad);
+  cfg.adv_2x_smallRing_smallestCogsBad = toNumber(cfg.adv_2x_smallRing_smallestCogsBad, DEFAULTS.adv_2x_smallRing_smallestCogsBad);
+  cfg.adv_1x_smallestCogsBad = toNumber(cfg.adv_1x_smallestCogsBad, DEFAULTS.adv_1x_smallestCogsBad);
+  cfg.adv_1x_largestCogsBad = toNumber(cfg.adv_1x_largestCogsBad, DEFAULTS.adv_1x_largestCogsBad);
+
   // Keep some constraints sane
   if (field === "ring2xSmall" || field === "ring2xBig") {
-    cfg.ring2xSmall = Number(cfg.ring2xSmall || 34);
-    cfg.ring2xBig = Number(cfg.ring2xBig || 50);
     if (cfg.ring2xBig <= cfg.ring2xSmall) cfg.ring2xBig = cfg.ring2xSmall + 1;
   }
   if (field === "customCircMm") {
@@ -798,17 +978,22 @@ function wireConfigDelegation() {
     // Buttons in config header
     if (target?.dataset?.action === "duplicate") {
       duplicateConfig(target.dataset.from);
-      markDirty(true);
+      persistState();
+      scheduleRender();
       return;
     }
     if (target?.dataset?.action === "reset") {
       resetConfig(target.dataset.id);
-      markDirty(true);
+      persistState();
+      scheduleRender();
       return;
     }
 
     const field = target?.dataset?.field;
     if (!field) return;
+    if (e.type === "click") return;
+    if (e.type === "input" && !["SELECT", "INPUT"].includes(target.tagName)) return;
+    if (e.type === "input" && target.tagName === "INPUT" && !["radio", "checkbox"].includes(target.type)) return;
 
     const card = target.closest("[data-cfg]");
     if (!card) return;
@@ -825,6 +1010,14 @@ function wireConfigDelegation() {
 
     cfg[field] = val;
 
+    if (field === "ring2xPairId") {
+      const pair = byId(DATA.chainring_pairs_2x || [], cfg.ring2xPairId);
+      if (pair) {
+        cfg.ring2xSmall = Number(pair.small);
+        cfg.ring2xBig = Number(pair.big);
+      }
+    }
+
     // extra: changing wheelId should update customCircMm if not using custom
     if (field === "wheelId") {
       const w = byId(DATA.wheels, cfg.wheelId);
@@ -832,6 +1025,9 @@ function wireConfigDelegation() {
     }
 
     normalizeCfgAfterField(cfg, field);
+    if (field === "ring2xSmall" || field === "ring2xBig") {
+      cfg.ring2xPairId = "custom";
+    }
 
     // If drivetrain changed, keep rings reasonable
     if (field === "drivetrain") {
@@ -842,7 +1038,8 @@ function wireConfigDelegation() {
       }
     }
 
-    markDirty(true);
+    persistState();
+    scheduleRender();
   };
 
   grid.addEventListener("click", handle);
@@ -859,9 +1056,9 @@ function wireRecalcButton() {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      markDirty(false);
+      persistState();
       // render v dalším ticku (když by se něco “pralo” s layoutem)
-      requestAnimationFrame(() => render());
+      scheduleRender();
     });
   }
 
@@ -871,8 +1068,8 @@ function wireRecalcButton() {
     if (!t) return;
     e.preventDefault();
     e.stopPropagation();
-    markDirty(false);
-    requestAnimationFrame(() => render());
+    persistState();
+    scheduleRender();
   }, true); // capture
 }
 
@@ -904,16 +1101,10 @@ function resetConfig(id) {
 
 /* ---------------- export ---------------- */
 
-function exportXlsx() {
-  if (!window.XLSX) {
-    alert("SheetJS (XLSX) se nenačetl.");
-    return;
-  }
-
-  const wb = XLSX.utils.book_new();
-
-  // Summary
+function buildExportSheets() {
+  const sheets = [];
   const summaryRows = [["Config","Name","Drivetrain","Wheel","Circ(mm)","Cassette","Cadence","Range(%)","Min km/h","Max km/h"]];
+
   for (const id of CFG_IDS) {
     const cfg = state.configs[id];
     if (!cfg.enabled) continue;
@@ -934,15 +1125,14 @@ function exportXlsx() {
       Number(calc.summary.maxSpeed.toFixed(1))
     ]);
   }
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), "Summary");
+  sheets.push({ name: "Summary", rows: summaryRows });
 
-  // Per config details
   for (const id of CFG_IDS) {
     const cfg = state.configs[id];
     if (!cfg.enabled) continue;
     const calc = computeCombos(cfg);
-
     const rows = [["Ring","Cog","Ratio","Development(m)","Gear inches","Speed(km/h)","Status"]];
+
     for (const r of calc.rows) {
       for (const c of r.cells) {
         rows.push([
@@ -956,11 +1146,46 @@ function exportXlsx() {
         ]);
       }
     }
-
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), `Config ${id}`);
+    sheets.push({ name: `Config ${id}`, rows });
   }
 
-  XLSX.writeFile(wb, `prevody_${new Date().toISOString().slice(0,10)}.xlsx`);
+  return sheets;
+}
+
+function csvCell(value) {
+  const text = value == null ? "" : String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function downloadTextFile(filename, content, type = "text/csv;charset=utf-8") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportXlsx() {
+  const sheets = buildExportSheets();
+  const date = new Date().toISOString().slice(0,10);
+  if (!window.XLSX) {
+    const csv = sheets.map(sheet => [
+      `# ${sheet.name}`,
+      ...sheet.rows.map(row => row.map(csvCell).join(","))
+    ].join("\n")).join("\n\n");
+    downloadTextFile(`prevody_${date}.csv`, csv);
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+  for (const sheet of sheets) {
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheet.rows), sheet.name);
+  }
+  XLSX.writeFile(wb, `prevody_${date}.xlsx`);
 }
 
 /* ---------------- main ---------------- */
@@ -970,6 +1195,7 @@ function exportXlsx() {
   if (!document.getElementById("configGrid")) return;
 
   initState();
+  restoreState();
 
   try {
     DATA = await loadData();
