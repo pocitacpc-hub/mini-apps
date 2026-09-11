@@ -9,6 +9,15 @@
     "tags": ["cyklo", "kalkulačka", "xlsx"]
   },
   {
+    "id": "neptun",
+    "name": "NEPTUN – speaker notes",
+    "description": "Prezentační scénář pro tablet · plynulé čtení · časování",
+    "path": "apps/neptun/",
+    "icon": "⚡",
+    "status": "active",
+    "tags": ["neptun", "prezentace", "energie"]
+  },
+  {
     "id": "placeholder",
     "name": "Další aplikace",
     "description": "Zatím připravuju…",
