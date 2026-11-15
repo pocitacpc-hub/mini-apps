@@ -18,6 +18,15 @@
     "tags": ["neptun", "prezentace", "energie"]
   },
   {
+    "id": "neptunWithSale",
+    "name": "NEPTUN s NEPTUN Sale – speaker notes",
+    "description": "Prezentační scénář s částí pro obchodníky · plynulé čtení · časování",
+    "path": "apps/neptunWithSale/",
+    "icon": "⚡",
+    "status": "active",
+    "tags": ["neptun", "neptun sale", "prezentace", "energie"]
+  },
+  {
     "id": "placeholder",
     "name": "Další aplikace",
     "description": "Zatím připravuju…",
