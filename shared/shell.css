@@ -167,9 +167,11 @@ img,svg{max-width:100%; height:auto}
 .hub-controls{
   margin-top: 14px;
   display:flex;
+  flex-wrap:wrap;
   gap: 10px;
   align-items:center;
 }
+.hub-install[hidden]{display:none}
 .hub-search{
   width: 100%;
   max-width: 520px;

@@ -3,9 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#000000">
   <title>Mini Apps – rozcestník</title>
   <link rel="stylesheet" href="shared/shell.css" />
   <script defer src="shared/hub.js"></script>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/mini-apps-180.png">
+  <script defer src="shared/pwa.js"></script>
 </head>
 
 <body>
@@ -20,7 +24,7 @@
       </div>
       <div>
         <div class="title">Mini Apps</div>
-        <div class="subtitle">Rozcestník aplikací 2</div>
+        <div class="subtitle">Rozcestník aplikací</div>
       </div>
     </div>
   </header>
@@ -31,10 +35,10 @@
         <div class="hero-bg" aria-hidden="true"></div>
         <div class="hero-content">
           <h1>Rozcestník</h1>
-          <p>Seznam aplikací se načítá z JSONu. Přidání nové appky = jen nový adresář + záznam do apps.json.</p>
 
           <div class="hub-controls">
-            <input id="search" class="hub-search" type="text" placeholder="Hledat aplikaci…" />
+            <input id="search" class="hub-search" type="text" placeholder="Hledat aplikaci…" aria-label="Hledat aplikaci" />
+            <button type="button" id="installApp" class="btn primary hub-install" hidden>Instalovat Mini Apps</button>
           </div>
 
           <div id="appGrid" class="app-grid" aria-live="polite"></div>
@@ -44,8 +48,5 @@
     </section>
   </main>
 
-  <footer class="footer">
-    <div>Tip: kvůli fetch(JSON) spouštěj přes lokální HTTP server.</div>
-  </footer>
 </body>
 </html>
